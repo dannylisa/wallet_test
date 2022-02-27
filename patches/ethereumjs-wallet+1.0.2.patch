@@ -1,0 +1,13 @@
+diff --git a/node_modules/ethereumjs-wallet/dist.browser/index.js b/node_modules/ethereumjs-wallet/dist.browser/index.js
+index ef4695c..37a1960 100644
+--- a/node_modules/ethereumjs-wallet/dist.browser/index.js
++++ b/node_modules/ethereumjs-wallet/dist.browser/index.js
+@@ -70,7 +70,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.thirdparty = exports.hdkey = void 0;
+-var crypto = __importStar(require("crypto"));
++var crypto = __importStar(require("react-native-crypto"));
+ var ethereumjs_util_1 = require("ethereumjs-util");
+ var scrypt_js_1 = require("scrypt-js");
+ var hdkey_1 = require("./hdkey");
