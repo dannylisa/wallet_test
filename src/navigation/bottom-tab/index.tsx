@@ -1,7 +1,6 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Home } from "@screens/home";
-import { CreateWallet } from "@/screens/create-wallet";
+import { Home } from "@/screens/home";
 
 export type BottomTabParamList = {
     Home: undefined

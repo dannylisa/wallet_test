@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
         borderColor: PRIMARY,
     },
     ghost: {
-        backgroundColor: "#fff",
+        backgroundColor: "#ffffff",
         borderColor: PRIMARY,
     },
     secondary: {
@@ -46,7 +46,10 @@ export const Button = ({style, children, type, disabled, ...props}:ButtonProps) 
         ) : (
             children
         )
-    const theme = styles[type]
+    let theme = styles[type]
+    if(disabled)
+        theme.backgroundColor = theme.backgroundColor+"aa";
+
 
     return (
         <TouchableOpacity
@@ -58,9 +61,7 @@ export const Button = ({style, children, type, disabled, ...props}:ButtonProps) 
             ]}
             {...props}
         >
-            <View style={disabled ? styles.disabled : styles.active}>
-                {content}
-            </View>
+            {content}
         </TouchableOpacity>
     )
 }

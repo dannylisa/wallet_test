@@ -13,5 +13,3 @@ export const screenStyles = StyleSheet.create({
         minHeight: Dimensions.get('window').height,
     }
 })
-
-console.log(Dimensions.get('screen').height)

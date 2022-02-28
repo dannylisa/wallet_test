@@ -1,14 +1,18 @@
 import React, { useMemo, useState } from "react"
 import * as bip39 from 'bip39';
 import { Box, Button, DESCRIPTION, fontfaces, PRIMARY, TextInput } from "@/materials";
-import { hdkey } from 'ethereumjs-wallet';
-import { Wallet } from 'ethers';
 import { StyleSheet, View } from "react-native";
 import { Typography } from "@/materials/Typography";
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { setKeychainItem } from "@/utils/secure-key-store";
 import { setGenericPassword, ACCESSIBLE, ACCESS_CONTROL, AUTHENTICATION_TYPE } from 'react-native-keychain';
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "@/navigation";
+import { useNavigation } from "@react-navigation/native";
 
+import { createWalletKeystore } from './createWallet'
+
+type RootScreenProp = StackNavigationProp<RootStackParamList, "CreateWallet">
 
 const styles = StyleSheet.create({
     mnemonicContainer: {
@@ -56,27 +60,34 @@ export const CreateWalletFinal = ({toBack, password, mnemonic, target}:CreateWal
     const mnemonics = useMemo(() => mnemonic.split(' '), [mnemonic])
     const [targetValue, setTargetValue] = useState<string>("")
 
+    const nav = useNavigation<RootScreenProp>()
 
-    const saveWalletToAsyncStorage = async (wallet:Wallet) => {
+
+    const saveWalletToAsyncStorage = async (address: string, password: string, privateKey: string) => {
         try {
             // 기존 지갑 목록 정보 가져오기
             const walletsInStorage = await AsyncStorage.getItem('WALLETS')
             const wallets = walletsInStorage ? JSON.parse(walletsInStorage) : [];
             // 기존 지갑 목록에 추가하기
-            wallets.push(wallet);
+            wallets.push({
+                address: address,
+                privateKey: privateKey,
+                createdAt: new Date().getTime(),
+            });
+
             // 지갑 목록 정보 저장하기
             await AsyncStorage.setItem('WALLETS', JSON.stringify(wallets));
             
             // 개인키를 안전한 영역에 저장
             setKeychainItem(
-                wallet.address, 
-                wallet.privateKey, 
+                address, 
+                privateKey, 
                 {accessible: ACCESSIBLE.ALWAYS_THIS_DEVICE_ONLY}
             )
             
             // 로컬 비밀번호 저장
             setGenericPassword(
-                wallet.address, 
+                address, 
                 password, 
                 {
                     accessControl: ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE, 
@@ -94,29 +105,16 @@ export const CreateWalletFinal = ({toBack, password, mnemonic, target}:CreateWal
 
     const createWallet = async ()=> {
         setLoading(true)
-        const seed = await bip39.mnemonicToSeed(mnemonic, password)
 
-        const index = 1;
-        const hdNode = hdkey.fromMasterSeed(seed);
-        const node = hdNode.derivePath(`m/44'/60'/0'`)
-        const change = node.deriveChild(0);
-
-        // m/44'/60'/0'/0/{N}
-        const childNode = change.deriveChild(index);
-        const childWallet = childNode.getWallet();
-        const wallet = new Wallet(childWallet.getPrivateKey().toString('hex'));
-
-        // Async Storage에 Wallet 정보 저장
-        saveWalletToAsyncStorage(wallet)
-
-
+        const {address, privateKey} = await createWalletKeystore(mnemonic, password)
+        await saveWalletToAsyncStorage(address, password, privateKey)
 
         setLoading(false)
-        return wallet
+        nav.navigate('SelectWallet')
 
     }
     return (
-        !loading ? CreateWalletLoading :
+        loading ? CreateWalletLoading :
         <Box justifyContent="space-between" flex={1} >
             <Typography style={fontfaces.H2} children="계정 시드 구문 확인" />
             <Typography 
@@ -196,7 +194,7 @@ export const CreateWalletFinal = ({toBack, password, mnemonic, target}:CreateWal
                     type="primary" 
                     onPress={createWallet} 
                     style={{flex:1}}
-                    disabled={mnemonics[target] === targetValue}
+                    disabled={mnemonics[target] !== targetValue}
                 >
                     지갑 생성
                 </Button>

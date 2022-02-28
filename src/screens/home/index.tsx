@@ -1,32 +1,46 @@
-import { Button, screenStyles } from "@/materials";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Wallet } from "ethers";
-import React, { useEffect, useState } from "react";
-import { SafeAreaView, ScrollView } from "react-native";
-import { NoWallet } from "./NoWallet";
+import React, { useEffect, useState } from "react"
+import { SafeAreaView, View } from "react-native"
+import { Box, fontfaces, screenStyles, shadow, Typography } from "@/materials"
+import { currentWalletState } from "@/modules/current-wallet.atom"
+import assert from "assert"
+import { useRecoilValue } from "recoil"
+import { web3 } from "@/web3-config"
 
 export function Home(){
-    const [wallets, setWallets] = useState<Wallet[]>([])
+    const currentWallet = useRecoilValue(currentWalletState)
+    assert(currentWallet)
+
+    const [balance, setBalance] = useState<number>(0)
     useEffect(() => {
-        AsyncStorage
-            .getItem('WALLETS')
+        web3.eth
+            .getBalance(currentWallet.address)
             .then(res => {
-                if(res)
-                    setWallets(JSON.parse(res))
+                console.log(res)
             })
     },[])
 
 
     return (
-        wallets.length ?
         <SafeAreaView style={screenStyles.safeAreaView}>
-            <ScrollView style={screenStyles.defaultScreen} >
-                <Button type="primary">
-                    지갑 생성하기
-                </Button>
-            </ScrollView>
+            <View style={screenStyles.defaultScreen} >
+                <Box style={shadow} padding={12} marginTop={16}>
+                    <Typography 
+                        align="center"
+                        style={fontfaces.H1}
+                        children="이더리움 지갑"
+                    />
+                    <Typography 
+                        align="center"
+                        style={fontfaces.D1}
+                        children={currentWallet.address}
+                    />
+                    <Typography 
+                        align="center"
+                        style={fontfaces.H2}
+                        children={`${balance} eth`}
+                    />
+                </Box>
+            </View>
         </SafeAreaView>
-        :
-        <NoWallet />
     )
 }
