@@ -6,11 +6,13 @@ import { CreateWallet } from "@screens/create-wallet";
 import { SelectWallet } from "@/screens/select-wallet";
 import { useRecoilValue } from "recoil";
 import { currentWalletState } from "@/modules/current-wallet.atom";
+import { AddWallet } from "@/screens/add-wallet";
 
 export type RootStackParamList = {
     "Main": undefined
     "CreateWallet": undefined
     "SelectWallet": undefined
+    "AddWallet": undefined
 }
 
 const Stack = createStackNavigator<RootStackParamList>()
@@ -29,6 +31,7 @@ export default function Navigation(){
                 <>
                     <Stack.Screen name="SelectWallet" component={SelectWallet} />
                     <Stack.Screen name="CreateWallet" component={CreateWallet} />
+                    <Stack.Screen name="AddWallet" component={AddWallet} />
                 </>
                 }
     

@@ -1,16 +1,13 @@
-import React, { useMemo, useState } from "react"
-import * as bip39 from 'bip39';
+import React, { useEffect, useMemo, useState } from "react"
 import { Box, Button, DESCRIPTION, fontfaces, PRIMARY, TextInput } from "@/materials";
 import { StyleSheet, View } from "react-native";
 import { Typography } from "@/materials/Typography";
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { setKeychainItem } from "@/utils/secure-key-store";
-import { setGenericPassword, ACCESSIBLE, ACCESS_CONTROL, AUTHENTICATION_TYPE } from 'react-native-keychain';
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@/navigation";
 import { useNavigation } from "@react-navigation/native";
 
 import { createWalletKeystore } from './createWallet'
+import { saveWalletToAsyncStorage } from "./saveWalletToAsyncStorage";
 
 type RootScreenProp = StackNavigationProp<RootStackParamList, "CreateWallet">
 
@@ -40,7 +37,7 @@ interface CreateWalletFinalProps {
     mnemonic: string
 }
 
-const CreateWalletLoading = (
+export const CreateWalletLoading = (
     <Box alignItems="center" justifyContent="center" style={{height: 460}}>
         <Typography
             style={fontfaces.H2} 
@@ -58,62 +55,28 @@ export const CreateWalletFinal = ({toBack, password, mnemonic, target}:CreateWal
     const [loading, setLoading] = useState<boolean>(false)
 
     const mnemonics = useMemo(() => mnemonic.split(' '), [mnemonic])
-    console.log(mnemonic)
     const [targetValue, setTargetValue] = useState<string>("")
 
     const nav = useNavigation<RootScreenProp>()
 
-
-    const saveWalletToAsyncStorage = async (address: string, password: string, privateKey: string) => {
-        try {
-            // 기존 지갑 목록 정보 가져오기
-            const walletsInStorage = await AsyncStorage.getItem('WALLETS')
-            const wallets = walletsInStorage ? JSON.parse(walletsInStorage) : [];
-            // 기존 지갑 목록에 추가하기
-            wallets.push({
-                address: address,
-                privateKey: privateKey,
-                createdAt: new Date().getTime(),
-            });
-
-            // 지갑 목록 정보 저장하기
-            await AsyncStorage.setItem('WALLETS', JSON.stringify(wallets));
-            
-            // 개인키를 안전한 영역에 저장
-            setKeychainItem(
-                address, 
-                privateKey, 
-                {accessible: ACCESSIBLE.ALWAYS_THIS_DEVICE_ONLY}
-            )
-            
-            // 로컬 비밀번호 저장
-            setGenericPassword(
-                address, 
-                password, 
-                {
-                    accessControl: ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE, 
-                    accessible: ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY, 
-                    authenticationType: AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
-                }
-            )
-
-
-          } catch (error) {
-            // Error saving data
-            console.log(error);
-          }
-    }
-
-    const createWallet = async ()=> {
+    const createWallet = ()=> {
         setLoading(true)
-
-        const {address, privateKey} = await createWalletKeystore(mnemonic, password)
-        await saveWalletToAsyncStorage(address, password, privateKey)
-
-        setLoading(false)
-        nav.navigate('SelectWallet')
-
+        // 나머지는 아래 useEffect에서 실행
     }
+    useEffect(() => {
+        if(!loading)
+            return;
+
+        createWalletKeystore(mnemonic, password)
+            .then(({address, privateKey}) => {
+                saveWalletToAsyncStorage(address, password, privateKey)
+            })
+            .finally(() => {
+                setLoading(false)
+                nav.navigate('SelectWallet')
+            })
+    }, [loading])
+
     return (
         loading ? CreateWalletLoading :
         <Box justifyContent="space-between" flex={1} >

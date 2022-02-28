@@ -1,6 +1,7 @@
 import { IStorageWallet } from "@/interface/storage-wallet.interface";
 import { Tag, Typography, shadow, Box, Button, fontfaces, screenStyles, PADDING_HORIZONTAL } from "@/materials";
 import { currentWalletState } from "@/modules/current-wallet.atom";
+import { myWalletsState } from "@/modules/my-wallets.atom";
 import { RootStackParamList } from "@/navigation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
@@ -8,7 +9,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { useSetRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 
 import { NoWallet } from "./NoWallet";
 
@@ -26,8 +27,9 @@ type RootScreenProp = StackNavigationProp<RootStackParamList, "CreateWallet">
 export function SelectWallet(){
     const nav = useNavigation<RootScreenProp>()
     const toCreate = () => nav.navigate('CreateWallet')
+    const toAdd = () => nav.navigate('AddWallet')
     
-    const [wallets, setWallets] = useState<IStorageWallet[]>([])
+    const [wallets, setWallets] = useRecoilState(myWalletsState)
     const setCurrentWallet = useSetRecoilState(currentWalletState)
 
 
@@ -48,7 +50,7 @@ export function SelectWallet(){
     },[nav])
 
 
-    return ( wallets.length ?
+    return ( wallets.length > 0 ?
         <SafeAreaView style={screenStyles.safeAreaView}>
             <ScrollView style={[screenStyles.defaultScreen, {padding: PADDING_HORIZONTAL}]}  >
                 <Typography 
@@ -90,6 +92,11 @@ export function SelectWallet(){
                 <Box marginTop={16}>
                     <Button type="primary" onPress={toCreate}>
                         지갑 생성하기
+                    </Button>
+                </Box>
+                <Box marginTop={16}>
+                    <Button type="ghost" onPress={toAdd}>
+                        기존 지갑 등록
                     </Button>
                 </Box>
             </ScrollView>

@@ -2,7 +2,6 @@ import React from "react"
 import { SafeAreaView, View } from "react-native"
 import { BackIcon, BlankIcon, Box, fontfaces, HeaderBase, PADDING_HORIZONTAL, screenStyles, shadow, Tag, Typography } from "@/materials"
 import { currentWalletState } from "@/modules/current-wallet.atom"
-import assert from "assert"
 import { useRecoilValue, useResetRecoilState } from "recoil"
 import { WalletView } from "./WalletView"
 import QRCode from "react-native-qrcode-svg"
@@ -10,8 +9,10 @@ import QRCode from "react-native-qrcode-svg"
 export function Home(){
     const currentWallet = useRecoilValue(currentWalletState)
     const resetCurrentWallet = useResetRecoilState(currentWalletState)
-    assert(currentWallet)
-
+    
+    
+    if(!currentWallet)
+        return null;
     
 
     return (

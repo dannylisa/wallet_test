@@ -1,4 +1,4 @@
-import { Box, Button, fontfaces, screenStyles } from "@/materials";
+import { Box, Button, fontfaces, PADDING_HORIZONTAL, screenStyles } from "@/materials";
 import { Typography } from "@/materials/Typography";
 import { RootStackParamList } from "@/navigation";
 import { useNavigation } from "@react-navigation/native";
@@ -11,10 +11,11 @@ type RootScreenProp = StackNavigationProp<RootStackParamList, "Main">
 export function NoWallet(){
     const nav = useNavigation<RootScreenProp>()
     const toCreate = () => nav.navigate('CreateWallet')
+    const toAdd = () => nav.navigate('AddWallet')
     
     return (
         <SafeAreaView style={screenStyles.safeAreaView}>
-            <View style={screenStyles.defaultScreen} >
+            <View style={[screenStyles.defaultScreen, {padding: 26}]} >
                 <Box>
                     <Typography 
                         style={fontfaces.H2}
@@ -31,7 +32,7 @@ export function NoWallet(){
                         지갑 생성하기
                     </Button>
                     <Box padding={10} />
-                    <Button type="ghost">
+                    <Button type="ghost" onPress={toAdd}>
                         기존 지갑 등록
                     </Button>
                 </Box>
