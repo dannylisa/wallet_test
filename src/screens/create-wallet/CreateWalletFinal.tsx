@@ -58,6 +58,7 @@ export const CreateWalletFinal = ({toBack, password, mnemonic, target}:CreateWal
     const [loading, setLoading] = useState<boolean>(false)
 
     const mnemonics = useMemo(() => mnemonic.split(' '), [mnemonic])
+    console.log(mnemonic)
     const [targetValue, setTargetValue] = useState<string>("")
 
     const nav = useNavigation<RootScreenProp>()

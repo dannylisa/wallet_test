@@ -1,6 +1,7 @@
 import React from "react"
-import { StyleSheet, TouchableOpacity, TouchableOpacityProps, View} from 'react-native'
-import { BLACK, fontfaces, PRIMARY, SECONDARY } from "."
+import { StyleSheet, TouchableOpacity, TouchableOpacityProps } from 'react-native'
+import { BLACK, PRIMARY, SECONDARY } from "./colors"
+import { fontfaces } from './font-faces'
 import { Typography } from "./Typography"
 
 interface ButtonProps extends TouchableOpacityProps {

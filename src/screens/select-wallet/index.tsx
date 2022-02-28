@@ -1,5 +1,5 @@
 import { IStorageWallet } from "@/interface/storage-wallet.interface";
-import { Tag, Typography, shadow, Box, Button, fontfaces, screenStyles } from "@/materials";
+import { Tag, Typography, shadow, Box, Button, fontfaces, screenStyles, PADDING_HORIZONTAL } from "@/materials";
 import { currentWalletState } from "@/modules/current-wallet.atom";
 import { RootStackParamList } from "@/navigation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -9,7 +9,6 @@ import React, { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useSetRecoilState } from "recoil";
-import Web3 from "web3";
 
 import { NoWallet } from "./NoWallet";
 
@@ -17,8 +16,7 @@ const styles = StyleSheet.create({
     walletContainer: {
         marginHorizontal: 4,
         marginVertical: 8,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        padding: 16,
     }
 })
 
@@ -52,13 +50,14 @@ export function SelectWallet(){
 
     return ( wallets.length ?
         <SafeAreaView style={screenStyles.safeAreaView}>
-            <ScrollView style={screenStyles.defaultScreen} >
-                <Box>
-                    <Typography 
-                        style={fontfaces.H1}
-                        children="내 지갑 목록"
-                    />
-                </Box>
+            <ScrollView style={[screenStyles.defaultScreen, {padding: PADDING_HORIZONTAL}]}  >
+                <Typography 
+                    style={fontfaces.H1}
+                    children="내 지갑 목록"
+                    marginVertical={12}
+                />
+
+
                 {wallets.map((wallet, i) => {
                     const onPress = () => setCurrentWallet(wallet)
                     const {address, privateKey} = wallet

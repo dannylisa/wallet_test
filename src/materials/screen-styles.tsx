@@ -1,6 +1,8 @@
 import { Dimensions, StyleSheet } from "react-native";
 
 const BACKGROUND = "#fff"
+export const PADDING_HORIZONTAL = 22;
+export const HEADER_HEIGHT = 64;
 
 export const screenStyles = StyleSheet.create({
     safeAreaView: {
@@ -9,7 +11,6 @@ export const screenStyles = StyleSheet.create({
     },
     defaultScreen: {
         flex: 1,
-        padding: 22,
         minHeight: Dimensions.get('window').height,
     }
 })

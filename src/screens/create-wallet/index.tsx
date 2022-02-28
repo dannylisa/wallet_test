@@ -1,4 +1,4 @@
-import { Box, fontfaces, screenStyles } from "@/materials"
+import { BackIcon, BlankIcon, Box, fontfaces, HeaderBase, PADDING_HORIZONTAL, screenStyles } from "@/materials"
 import { Typography } from "@/materials/Typography"
 import React, { useEffect, useMemo, useState } from "react"
 import * as Bip39 from 'bip39';
@@ -37,51 +37,58 @@ export function CreateWallet(){
     return (
         <SafeAreaView style={screenStyles.safeAreaView}>
             <KeyboardAwareScrollView style={screenStyles.defaultScreen} >
-                <Typography style={fontfaces.H1} >
-                    지갑 추가하기
-                </Typography>
-                
+                <HeaderBase >
+                    <BackIcon />
+                    <Typography style={fontfaces.P1} bold >
+                        지갑 추가하기
+                    </Typography>
+                    <BlankIcon />
+                </HeaderBase>
+                <Box paddingHorizontal={PADDING_HORIZONTAL}>
 
-                <Box marginVertical={12} flexDirection="row" justifyContent="space-evenly">
-                    <Typography 
-                        style={fontfaces.D1} 
-                        color={step > 1 ? "description" : "primary" }
-                    >
-                        1. 암호 생성
-                    </Typography>
-                    <Typography style={fontfaces.D1} children={'>'} />
-                    <Typography 
-                        style={fontfaces.D1} 
-                        color={step > 2 ? "description" : step < 2 ? "normal" : "primary" }
-                    >
-                        2. 계정 시드 구문 기록
-                    </Typography>
-                    <Typography style={fontfaces.D1} children={'>'} />
-                    <Typography 
-                        style={fontfaces.D1} 
-                        color={step < 3 ? "normal" : "primary"}
-                    >
-                        3. 계정 시드 구문 확인
-                    </Typography>
+                    <Box marginVertical={16} flexDirection="row" justifyContent="space-evenly">
+                        <Typography 
+                            style={fontfaces.D1} 
+                            color={step > 1 ? "description" : "primary" }
+                        >
+                            1. 암호 생성
+                        </Typography>
+                        <Typography style={fontfaces.D1} children={'>'} />
+                        <Typography 
+                            style={fontfaces.D1} 
+                            color={step > 2 ? "description" : step < 2 ? "normal" : "primary" }
+                        >
+                            2. 계정 시드 구문 기록
+                        </Typography>
+                        <Typography style={fontfaces.D1} children={'>'} />
+                        <Typography 
+                            style={fontfaces.D1} 
+                            color={step < 3 ? "normal" : "primary"}
+                        >
+                            3. 계정 시드 구문 확인
+                        </Typography>
+                    </Box>
+
+                    <Box paddingVertical={20}>
+                        {step === 1 ? 
+                        <CreatePassword onNext={toGenerateMnemonicStep} />
+                        : step === 2 ?
+                        <GenerateMnemonic 
+                            onNext={toCreateWalletFinalStep} 
+                            mnemonic={mnemonic}
+                        />
+                        :
+                        <CreateWalletFinal 
+                            toBack={backToGenerateMnemonicStep}
+                            password={password} 
+                            mnemonic={mnemonic}
+                            target={target}
+                        />
+                        }
+                    </Box>
+
                 </Box>
 
-                <Box paddingVertical={20}>
-                    {step === 1 ? 
-                    <CreatePassword onNext={toGenerateMnemonicStep} />
-                    : step === 2 ?
-                    <GenerateMnemonic 
-                        onNext={toCreateWalletFinalStep} 
-                        mnemonic={mnemonic}
-                    />
-                    :
-                    <CreateWalletFinal 
-                        toBack={backToGenerateMnemonicStep}
-                        password={password} 
-                        mnemonic={mnemonic}
-                        target={target}
-                    />
-                    }
-                </Box>
 
             </KeyboardAwareScrollView>
         </SafeAreaView>

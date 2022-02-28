@@ -1,44 +1,48 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
 import { SafeAreaView, View } from "react-native"
-import { Box, fontfaces, screenStyles, shadow, Typography } from "@/materials"
+import { BackIcon, BlankIcon, Box, fontfaces, HeaderBase, PADDING_HORIZONTAL, screenStyles, shadow, Tag, Typography } from "@/materials"
 import { currentWalletState } from "@/modules/current-wallet.atom"
 import assert from "assert"
-import { useRecoilValue } from "recoil"
-import { web3 } from "@/web3-config"
+import { useRecoilValue, useResetRecoilState } from "recoil"
+import { WalletView } from "./WalletView"
+import QRCode from "react-native-qrcode-svg"
 
 export function Home(){
     const currentWallet = useRecoilValue(currentWalletState)
+    const resetCurrentWallet = useResetRecoilState(currentWalletState)
     assert(currentWallet)
 
-    const [balance, setBalance] = useState<number>(0)
-    useEffect(() => {
-        web3.eth
-            .getBalance(currentWallet.address)
-            .then(res => {
-                console.log(res)
-            })
-    },[])
-
+    
 
     return (
         <SafeAreaView style={screenStyles.safeAreaView}>
             <View style={screenStyles.defaultScreen} >
-                <Box style={shadow} padding={12} marginTop={16}>
+                <HeaderBase>
+                    <BackIcon onPress={resetCurrentWallet} />
                     <Typography 
-                        align="center"
-                        style={fontfaces.H1}
-                        children="이더리움 지갑"
+                        bold
+                        style={fontfaces.P1}
+                        children="계좌 정보"
                     />
-                    <Typography 
-                        align="center"
-                        style={fontfaces.D1}
-                        children={currentWallet.address}
-                    />
-                    <Typography 
-                        align="center"
-                        style={fontfaces.H2}
-                        children={`${balance} eth`}
-                    />
+                    <BlankIcon />
+                </HeaderBase>
+                <Box paddingHorizontal={PADDING_HORIZONTAL} marginTop={24}>
+                    {/* 지갑 미리보기 */}
+                    <WalletView wallet={currentWallet} />
+
+                    <Box marginTop={32} alignItems="center">
+                        <Typography 
+                            bold 
+                            style={fontfaces.P1}
+                            children="이 계좌로 입금하기"
+                            marginBottom={16}
+                        />
+                        <QRCode 
+                            value={currentWallet.address}
+                            size={220}
+                        />
+                    </Box>
+
                 </Box>
             </View>
         </SafeAreaView>
