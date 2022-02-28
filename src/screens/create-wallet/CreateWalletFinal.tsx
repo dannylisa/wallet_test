@@ -7,7 +7,7 @@ import { StyleSheet, View } from "react-native";
 import { Typography } from "@/materials/Typography";
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { setKeychainItem } from "@/utils/secure-key-store";
-import { ACCESSIBLE } from 'react-native-keychain';
+import { setGenericPassword, ACCESSIBLE, ACCESS_CONTROL, AUTHENTICATION_TYPE } from 'react-native-keychain';
 
 
 const styles = StyleSheet.create({
@@ -74,6 +74,17 @@ export const CreateWalletFinal = ({toBack, password, mnemonic, target}:CreateWal
                 {accessible: ACCESSIBLE.ALWAYS_THIS_DEVICE_ONLY}
             )
             
+            // 로컬 비밀번호 저장
+            setGenericPassword(
+                wallet.address, 
+                password, 
+                {
+                    accessControl: ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE, 
+                    accessible: ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY, 
+                    authenticationType: AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
+                }
+            )
+
 
           } catch (error) {
             // Error saving data

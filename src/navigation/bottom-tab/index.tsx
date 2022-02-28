@@ -13,7 +13,7 @@ export default function BottomTabNavigator(){
         <BottomTab.Navigator>
             <BottomTab.Screen 
                 name="Home" 
-                component={CreateWallet}
+                component={Home}
                 options={{
                     headerShown: false,
                 }}
