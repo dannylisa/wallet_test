@@ -1,6 +1,6 @@
 import { IStorageWallet } from "@/interface/storage-wallet.interface";
 import { Box, fontfaces, shadow, Tag, Typography } from "@/materials";
-import { web3 } from "@/web3-config";
+import { ropsten } from "@/web3-config";
 import React, { useEffect, useState } from "react";
 import Web3 from "web3";
 
@@ -11,7 +11,7 @@ export const WalletView = ({wallet:{address, }}:WalletViewProps) => {
     const [balance, setBalance] = useState<string>("-")
 
     const updateBalance = () => {
-        web3.eth
+        ropsten.eth
             .getBalance(address)
             .then(res => {
                 const eth = Web3.utils.fromWei(res, 'ether')

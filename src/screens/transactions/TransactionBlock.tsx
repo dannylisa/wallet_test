@@ -1,7 +1,7 @@
 import { ITransaction } from "@/interface/transaction.interface"
 import { Box, fontfaces, Typography } from "@/materials"
 import { fAddress } from "@/utils/format-address"
-import { web3 } from "@/web3-config"
+import { ropsten } from "@/web3-config"
 import dayjs from "dayjs"
 import React from "react"
 import { StyleSheet, View } from "react-native"

@@ -1,10 +1,10 @@
 
-import { web3 } from "@/web3-config";
+import { ropsten } from "@/web3-config";
 import { Transaction } from "web3-eth";
 
 export const getBlockNumber = async () => {
     return new Promise<number>(resolve => {
-        web3.eth.getBlockNumber((err, blockNumber) => resolve(blockNumber))
+        ropsten.eth.getBlockNumber((err, blockNumber) => resolve(blockNumber))
     })
 }
 
@@ -18,10 +18,10 @@ export async function getTransactionsByAccount (account:string, endBlockNumber:n
     const startBlockNumber = endBlockNumber - 200;
     const targetTransactions:Transaction[] = [];
     for(let i = endBlockNumber; i >= startBlockNumber; i--){
-        const block = await web3.eth.getBlock(i)
+        const block = await ropsten.eth.getBlock(i)
         console.log(block.timestamp)
         for (const transaction of block.transactions) {
-            const tx = await web3.eth.getTransaction(transaction)
+            const tx = await ropsten.eth.getTransaction(transaction)
             if(tx.from === account || tx.to === account){
                 targetTransactions.push(tx)
                 console.log(tx)

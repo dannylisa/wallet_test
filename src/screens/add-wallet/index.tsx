@@ -3,7 +3,7 @@ import { BackIcon, BlankIcon, Box, fontfaces, HeaderBase, PADDING_HORIZONTAL,
 import React, { useEffect, useState } from "react"
 import { SafeAreaView } from "react-native"
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import { web3 } from "@/web3-config";
+import { ropsten } from "@/web3-config";
 import { saveWalletToAsyncStorage } from "../create-wallet/saveWalletToAsyncStorage";
 import { CreateWalletLoading } from "../create-wallet/CreateWalletFinal";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -34,7 +34,7 @@ export function AddWallet(){
     useEffect(() => {
         if(!loading)
             return;
-        const account = web3.eth.accounts.privateKeyToAccount(pk)
+        const account = ropsten.eth.accounts.privateKeyToAccount(pk)
         saveWalletToAsyncStorage(account.address, pwd, pk)
             .finally(() => {
                 setLoading(false)
