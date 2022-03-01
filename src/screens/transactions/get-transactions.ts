@@ -16,19 +16,19 @@ export interface GetTransactionsResult {
 
 export async function getTransactionsByAccount (account:string, endBlockNumber:number): Promise<GetTransactionsResult> {
     const startBlockNumber = endBlockNumber - 200;
-
-    const blockNumberArray = new Array(endBlockNumber - startBlockNumber).fill(0).map((_,i) => startBlockNumber+i)
     const targetTransactions:Transaction[] = [];
-    await Promise.all(
-        blockNumberArray.map(async (blockNo) => {
-            const block = await web3.eth.getBlock(blockNo)
-            for (const transaction of block.transactions) {
-                const tx = await web3.eth.getTransaction(transaction)
-                if(tx.from === account || tx.to === account)
-                    targetTransactions.push(tx)
+    for(let i = endBlockNumber; i >= startBlockNumber; i--){
+        const block = await web3.eth.getBlock(i)
+        console.log(block.timestamp)
+        for (const transaction of block.transactions) {
+            const tx = await web3.eth.getTransaction(transaction)
+            if(tx.from === account || tx.to === account){
+                targetTransactions.push(tx)
+                console.log(tx)
             }
-        })
-    )
+        }
+    }
+
     return {
         nextEndBlockNumber: startBlockNumber-1,
         transactions: targetTransactions
