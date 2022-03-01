@@ -3,6 +3,7 @@ import { Tag, Typography, shadow, Box, Button, fontfaces, screenStyles, PADDING_
 import { currentWalletState } from "@/modules/current-wallet.atom";
 import { myWalletsState } from "@/modules/my-wallets.atom";
 import { RootStackParamList } from "@/navigation";
+import { fAddress } from "@/utils/format-address";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -77,7 +78,7 @@ export function SelectWallet(){
                             />
                             <Typography
                                 style={fontfaces.P1}
-                                children={`Address: ${address.slice(0,12)}...${address.slice(-8)}`}
+                                children={`Address: ${fAddress(address, 12, 8)}`}
                                 marginBottom={7}
                                 bold
                             />

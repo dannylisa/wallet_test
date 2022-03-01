@@ -2,13 +2,16 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Home } from "@/screens/home";
 import Foundation from 'react-native-vector-icons/Foundation'
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
 import { Box, DESCRIPTION, fontfaces, PRIMARY, Typography } from "@/materials";
 import { Transactions } from "@/screens/transactions";
+import { Withdraw } from "@/screens/withdraw";
 
 export type BottomTabParamList = {
     Home: undefined
     Transactions: undefined
+    Withdraw: undefined
 }
 const BottomTab = createBottomTabNavigator<BottomTabParamList>()
 const tabbarOptions = {
@@ -30,6 +33,17 @@ export default function BottomTabNavigator(){
                 }}
                 
             />
+
+            <BottomTab.Screen 
+                name="Withdraw" 
+                component={Withdraw}
+                options={{
+                    tabBarIcon: WithdrawIcon,
+                    ...tabbarOptions
+                }}
+                
+            />
+
             <BottomTab.Screen 
                 name="Transactions" 
                 component={Transactions}
@@ -58,6 +72,18 @@ const HomeIcon = (({color}:TabBarIconProps) => (
         />
     </Box>
 ))
+
+const WithdrawIcon = (({color}:TabBarIconProps) => (
+    <Box alignItems="center">
+        <FontAwesome name="send" size={24} color={color} />
+        <Typography 
+            style={fontfaces.D1}
+            color={color}
+            children="출금"
+        />
+    </Box>
+))
+
 const TransactionsIcon = (({color}:TabBarIconProps) => (
     <Box alignItems="center">
         <Entypo name="shuffle" size={24} color={color} />

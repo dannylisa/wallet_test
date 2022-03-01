@@ -1,5 +1,6 @@
 import { ITransaction } from "@/interface/transaction.interface"
 import { Box, fontfaces, Typography } from "@/materials"
+import { fAddress } from "@/utils/format-address"
 import { web3 } from "@/web3-config"
 import dayjs from "dayjs"
 import React from "react"
@@ -20,7 +21,7 @@ const styles = StyleSheet.create({
     }
 })
 
-const fAddress = (address: string) => `${address.slice(0,6)}...${address.slice(-4)}`
+
 export const TransactionBlock = ({transaction:{from, to, value, timeStamp}, address}:TransactionBlockProps) => {
     const isWithdraw = from === address
     const color = isWithdraw ? "#FB334E" : "#2B88F7"
