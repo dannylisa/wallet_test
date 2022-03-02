@@ -10,7 +10,6 @@ export const saveWalletToAsyncStorage = async (address: string, password: string
         // 기존 지갑 목록에 추가하기
         wallets.push({
             address: address,
-            privateKey: privateKey,
             createdAt: new Date().getTime(),
         });
 

@@ -7,6 +7,7 @@ import { fAddress } from "@/utils/format-address";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -63,7 +64,7 @@ export function SelectWallet(){
 
                 {wallets.map((wallet, i) => {
                     const onPress = () => setCurrentWallet(wallet)
-                    const {address, privateKey} = wallet
+                    const {address, createdAt} = wallet
                     return (
                         <TouchableOpacity 
                             key={i}
@@ -82,9 +83,11 @@ export function SelectWallet(){
                                 marginBottom={7}
                                 bold
                             />
-                            <Tag
-                                color="blue"
-                                children={`Private Key: ${privateKey.slice(0,20)}...${privateKey.slice(-10)}`}
+                            <Typography
+                                style={fontfaces.D1}
+                                children={dayjs(createdAt).format('YYYY-MM-DD 등록')}
+                                marginBottom={7}
+                                bold
                             />
                         </TouchableOpacity>
                     )

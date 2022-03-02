@@ -1,19 +1,32 @@
-import { Box, fontfaces, HeaderBase, PADDING_HORIZONTAL, screenStyles, shadow, TextInput, Typography } from "@/materials";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Box, Button, fontfaces, HeaderBase, PADDING_HORIZONTAL, screenStyles, TextInput, Typography } from "@/materials";
+import { Alert, SafeAreaView, View } from "react-native";
 import { currentWalletState } from "@/modules/current-wallet.atom";
 import { myWalletsState } from "@/modules/my-wallets.atom";
-import { fAddress } from "@/utils/format-address";
-import { ropsten } from "@/web3-config";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SafeAreaView, StyleSheet, View } from "react-native";
 import DropDownPicker, { ValueType } from "react-native-dropdown-picker";
 import { useRecoilValue } from "recoil";
-import Web3 from "web3";
+import { getKeychainItem } from "@/utils/secure-key-store";
 import { BottomSheetModal, BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { MyWalletsBottomSheet } from "./mywallet-bottom-sheet";
-import { getKeychainItem } from "@/utils/secure-key-store";
+import { fAddress } from "@/utils/format-address";
+import Web3 from "web3";
+import { ropsten } from "@/web3-config";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { WithdrawParamList } from "@/navigation/bottom-tab/WithdrawNavigator";
+import { useNavigation } from "@react-navigation/native";
+
+
+
+const {toBN, toWei, fromWei, isAddress} = Web3.utils
+const GweiToEther = (gwei: string | number) => fromWei(toWei(gwei+"", 'Gwei'), 'ether')
+
+type WithdrawScreenProp = StackNavigationProp<WithdrawParamList, "withdraw/main">
 
 
 export function Withdraw(){
+    const nav = useNavigation<WithdrawScreenProp>()
+
+
     const currentWallet = useRecoilValue(currentWalletState)
     const myWallets = useRecoilValue(myWalletsState)
 
@@ -34,7 +47,7 @@ export function Withdraw(){
         ropsten.eth
             .getBalance(""+fromAddress)
             .then(res => {
-                const eth = Web3.utils.fromWei(res, 'ether')
+                const eth = fromWei(res, 'ether')
                 setFromBalance(eth)
             })
     },[fromAddress])
@@ -48,33 +61,83 @@ export function Withdraw(){
     }, []);
 
     // 금액
-    const [value, setValue] = useState<string>("")
-    // const estimateFee = Web3.utils.toBN()
-    // .bigNumberify(gasPrice).mul(gasLimit);
+    const [valueETH, setValueETH] = useState<string>("")
+    const [gasPrice, setGasPrice] = useState<number>(0)
+    const [gasLimit, setGasLimit] = useState<number>(0)
+    const gasFee = useMemo(() => gasLimit*gasPrice, [gasLimit, gasPrice])
+    const isSendable = (value: string) => {
+        if(fromBalance==="-"){
+            return false;
+        }
+
+        return toBN(toWei(fromBalance, 'ether')).gte(
+            toBN(toWei(value, 'ether')).add(
+                toBN(+(gasPrice*gasLimit+"e+15"))
+            )
+        )
+    }
+
+    // 마지막 블록의 gas의 median
+    useEffect(() => {
+        ropsten.eth.getGasPrice().then((gas) => {
+            setGasPrice(+fromWei(gas, 'Gwei'))
+        })
+    },[])
+
+    // Estimate Gas Limit
+    useEffect(() => {
+        if(fromAddress && toAddress && valueETH)
+            ropsten.eth.estimateGas({
+                from: fromAddress+"",
+                to: toAddress,
+                value: toWei(valueETH, 'ether')
+            }, (err, gas) => {
+                console.log(gas)
+                setGasLimit(+GweiToEther(gas || 0))
+            })
+    },[fromAddress, toAddress, valueETH])
 
     const makeTX = async () =>{
         if(!fromAddress)
             return;
+        const from = fromAddress+""
+        const value = toWei(valueETH, 'ether')
 
-        const gasPrice = '0';
-        const gasLimit = '0';
-        const nonce = await ropsten.eth.getTransactionCount(fromAddress+"");
-
-        const tx = {
+        const gasPrice = await ropsten.eth.getGasPrice()
+        const gasLimit = await ropsten.eth.estimateGas({
+            from,
             to: toAddress,
-            value: Web3.utils.toWei(value, 'ether'), // ehter => wei 
-            gasPrice: Web3.utils.toWei(gasPrice, 'gwei'), // gwei => wei
-            gasLimit: Web3.utils.toBN(gasLimit), 
-            nonce: nonce,
-            data: ''
+            value
+        })
+        
+        const nonce = await ropsten.eth.getTransactionCount(from);
+        const privateKey = await getKeychainItem(from)
+        if(!privateKey){
+            Alert.alert('로컬에 개인 키가 저장되어있지 않습니다.')
+            return;
         }
+
+        const tx ={
+            from,
+            to: toAddress,
+            nonce,
+            value,
+            gasPrice,
+            gasLimit
+        }
+
+        await ropsten.eth.accounts.signTransaction(tx, privateKey,
+            (err, signedTransaction) => {
+                if(signedTransaction.rawTransaction)
+                    ropsten.eth.sendSignedTransaction(
+                        signedTransaction.rawTransaction
+                    ).on(
+                        'receipt', 
+                        (receipt)=> nav.navigate('withdraw/receipt', {receipt}) 
+                    )
+            })
     }
 
-    useEffect(() => {
-        if(currentWallet)
-            getKeychainItem(currentWallet.address).then(res => console.log(res))
-    },[])
-    
     return (
         <SafeAreaView style={screenStyles.safeAreaView}>
             <BottomSheetModalProvider>
@@ -144,7 +207,7 @@ export function Withdraw(){
                         value={toAddress}
                         onChangeText={setToAddress}
                         placeholder="받는 지갑 주소를 입력해 주세요."
-                        validator={Web3.utils.isAddress}
+                        validator={isAddress}
                         message="올바른 지갑 주소가 아닙니다."
                     />
                 
@@ -152,21 +215,50 @@ export function Withdraw(){
                     <Typography 
                         bold
                         style={fontfaces.P1}
-                        children="금액"
+                        children="보낼 금액"
                         marginVertical={12}
                     />
-                    <Box flexDirection="row">
-                        <TextInput
-                            keyboardType="numeric" 
-                            value={value}
-                            onChangeText={setValue}
-                            placeholder="보낼 금액을 입력해 주세요."
-                            validator={Web3.utils.isAddress}
-                            message="올바른 지갑 주소가 아닙니다."
+                    <TextInput
+                        keyboardType="numeric" 
+                        value={valueETH}
+                        onChangeText={setValueETH}
+                        placeholder="0.5"
+                        validator={isSendable}
+                        message="잔액이 부족합니다."
+                        style={{textAlign: "right"}}
+                        Right={
+                            <Typography 
+                                bold
+                                style={fontfaces.P1}
+                                children="ETH"
+                                marginLeft={12}
+                                marginTop={6}
+                            />
+                        }
+                    />
+
+
+                    <Box 
+                        flexDirection="row"
+                        justifyContent="space-between" 
+                        alignItems="center" 
+                        marginVertical={12}
+                    >
+                        <Typography 
+                            bold
+                            style={fontfaces.P1}
+                            children="가스 비용"
+                        />
+                        <Typography 
+                            bold
+                            style={fontfaces.P1}
+                            children={`${gasFee} ETH`}
                         />
                     </Box>
-                
-                
+                    <Button type="primary" onPress={makeTX}>
+                        보내기
+                    </Button>
+
                 </View>
 
 
