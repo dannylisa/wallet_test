@@ -7,7 +7,6 @@ import { useRecoilValue } from "recoil";
 import { myWalletsState } from "@/modules/my-wallets.atom";
 import { fAddress } from "@/utils/format-address";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
-import Web3 from "web3";
 
 interface MyWalletsBottomSheetProps {
     sheetRef: React.RefObject<BottomSheetModalMethods>
@@ -48,6 +47,8 @@ export const MyWalletsBottomSheet = ({sheetRef, onSelect}:MyWalletsBottomSheetPr
             ref={sheetRef}
             index={1}
             snapPoints={snapPoints}
+            enablePanDownToClose
+            enableDismissOnClose
         >
             <Box 
                 flex={1}

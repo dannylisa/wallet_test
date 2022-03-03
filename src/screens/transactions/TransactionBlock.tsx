@@ -1,7 +1,6 @@
 import { ITransaction } from "@/interface/transaction.interface"
-import { Box, fontfaces, Typography } from "@/materials"
+import { fontfaces, Typography } from "@/materials"
 import { fAddress } from "@/utils/format-address"
-import { ropsten } from "@/web3-config"
 import dayjs from "dayjs"
 import React from "react"
 import { StyleSheet, View } from "react-native"
@@ -17,15 +16,15 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderBottomColor: "#d2d3d4",
-        borderBottomWidth: 1,
+        borderBottomWidth: 0.5,
     }
 })
 
 
 export const TransactionBlock = ({transaction:{from, to, value, timeStamp}, address}:TransactionBlockProps) => {
-    const isWithdraw = from === address
+    const isWithdraw = from.toUpperCase() === address.toUpperCase()
     const color = isWithdraw ? "#FB334E" : "#2B88F7"
-    const date = dayjs((+timeStamp)*1000).format('YYYY-MM-DD HH:mm:ss')
+    const date = dayjs(+(timeStamp || 1)*1000).format('YYYY-MM-DD HH:mm:ss')
 
     return (
         <View style={styles.container}>

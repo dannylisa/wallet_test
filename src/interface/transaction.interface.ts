@@ -1,20 +1,26 @@
+
+export type TransactionStatusType = 'error' | 'confirmation' | 'receipt' | 'transactionHash' | 'sent' | 'sending'
 export interface ITransaction {
-    blockNumber: string
-    timeStamp: string
-    hash: string
-    nonce: string
-    blockHash: string
-    transactionIndex: string
+    status?: TransactionStatusType
+    
     from: string
     to: string
     value: string
-    gas: string
+    nonce: number
     gasPrice: string
-    isError: string
-    txreceipt_status: string
-    input: string
-    contractAddress: string
-    cumulativeGasUsed: string
-    gasUsed: string
-    confirmations: string
+
+    gasLimit?: number
+    hash?: string
+    blockHash?: string
+    blockNumber?: string
+    timeStamp?: string
+    transactionIndex?: string
+    gas?: string
+    isError?: string
+    txreceipt_status?: string
+    input?: string
+    contractAddress?: string
+    cumulativeGasUsed?: string
+    gasUsed?: string
+    confirmations?: string
 }

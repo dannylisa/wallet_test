@@ -1,3 +1,4 @@
+import React from "react";
 import { BackIcon, BlankIcon, fontfaces, HeaderBase, screenStyles, Typography } from "@/materials";
 import { WithdrawParamList } from "@/navigation/bottom-tab/WithdrawNavigator";
 import { RouteProp, useRoute } from "@react-navigation/native";

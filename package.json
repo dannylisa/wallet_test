@@ -58,6 +58,7 @@
     "react-native-screens": "3.12.0",
     "react-native-svg": "12.1.1",
     "react-native-tcp": "3.3.2",
+    "react-native-toast-message": "2.1.1",
     "react-native-udp": "2.7.0",
     "react-native-vector-icons": "9.1.0",
     "readable-stream": "1.0.33",

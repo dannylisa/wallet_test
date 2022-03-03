@@ -6,7 +6,6 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
 import { Box, DESCRIPTION, fontfaces, PRIMARY, Typography } from "@/materials";
 import { Transactions } from "@/screens/transactions";
-import { Withdraw } from "@/screens/withdraw";
 import WithdrawNavigator from "./WithdrawNavigator";
 
 export type BottomTabParamList = {

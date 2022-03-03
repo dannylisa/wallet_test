@@ -2,6 +2,7 @@
 import Navigation from '@/navigation';
 import React from 'react';
 import { StatusBar } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { RecoilRoot } from 'recoil';
 
 
@@ -10,6 +11,7 @@ const App = () => {
     <RecoilRoot>
       <StatusBar barStyle='dark-content'/>
       <Navigation />
+      <Toast />
     </RecoilRoot>
   );
 };

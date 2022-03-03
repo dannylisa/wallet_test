@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Button, fontfaces, HeaderBase, PADDING_HORIZONTAL, screenStyles, TextInput, Typography } from "@/materials";
-import { Alert, SafeAreaView, View } from "react-native";
+import { Alert, Keyboard, SafeAreaView, View } from "react-native";
 import { currentWalletState } from "@/modules/current-wallet.atom";
 import { myWalletsState } from "@/modules/my-wallets.atom";
 import DropDownPicker, { ValueType } from "react-native-dropdown-picker";
@@ -14,6 +14,9 @@ import { ropsten } from "@/web3-config";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { WithdrawParamList } from "@/navigation/bottom-tab/WithdrawNavigator";
 import { useNavigation } from "@react-navigation/native";
+import { useCurrentTransaction } from "@/modules/current-transaction";
+import { ITransaction } from "@/interface/transaction.interface";
+import Toast, { ErrorToast } from "react-native-toast-message";
 
 
 
@@ -58,6 +61,7 @@ export function Withdraw(){
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const openToAddressModal = useCallback(() => {
         bottomSheetModalRef.current?.present();
+        Keyboard.dismiss()
     }, []);
 
     // 금액
@@ -72,10 +76,18 @@ export function Withdraw(){
 
         return toBN(toWei(fromBalance, 'ether')).gte(
             toBN(toWei(value, 'ether')).add(
-                toBN(+(gasPrice*gasLimit+"e+15"))
+                toBN(parseInt(gasPrice*gasLimit+"e+15"))
             )
         )
     }
+
+    // 현재 트랜잭션 관리
+    const {
+        addTransaction, 
+        changeTransactionStatus, 
+        setTransactionHash,
+        setTerminalTransaction
+    } = useCurrentTransaction()
 
     // 마지막 블록의 gas의 median
     useEffect(() => {
@@ -117,7 +129,7 @@ export function Withdraw(){
             return;
         }
 
-        const tx ={
+        const tx:ITransaction ={
             from,
             to: toAddress,
             nonce,
@@ -128,13 +140,42 @@ export function Withdraw(){
 
         await ropsten.eth.accounts.signTransaction(tx, privateKey,
             (err, signedTransaction) => {
-                if(signedTransaction.rawTransaction)
+                if(err){
+                    ErrorToast({
+                        text1: '요청에 실패하였습니다.'
+                    })
+                }
+                if(signedTransaction.rawTransaction){
+                    // local ID
+                    const txID = Math.floor(new Date().getTime()/1000)
+
                     ropsten.eth.sendSignedTransaction(
                         signedTransaction.rawTransaction
-                    ).on(
-                        'receipt', 
-                        (receipt)=> nav.navigate('withdraw/receipt', {receipt}) 
                     )
+                    .once('sending', () => addTransaction(txID, tx))
+                    .once('sent', () => changeTransactionStatus(txID, 'sent'))
+                    .once('transactionHash', (hash) => setTransactionHash(txID, hash))
+                    .once('confirmation', () => changeTransactionStatus(txID, 'confirmation'))
+                    .once('error', () => {
+                        setTerminalTransaction(txID, 'error')
+                        ErrorToast({
+                            text1: '송금 요청에 실패하였습니다.'
+                        })
+                    })
+                    .once(
+                        'receipt', 
+                        (receipt)=> {
+                            setTerminalTransaction(txID, 'receipt');
+                            Toast.show({
+                                type: 'success',
+                                text1: `${value} ETH 송금이 완료되었습니다.`,
+                                text2: `${fAddress(tx.from)} -> ${fAddress(tx.to)}`,
+                                onPress: () => nav.navigate('withdraw/receipt', {receipt}) 
+                            });
+                        }
+                    )
+                    nav.navigate('withdraw/requested') 
+                }
             })
     }
 

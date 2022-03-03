@@ -1,5 +1,5 @@
-import React, { useMemo } from "react"
-import { StyleSheet, Text, TextProps } from "react-native"
+import React from "react"
+import { Text, TextProps } from "react-native"
 import { BLACK, DANGER, DESCRIPTION, PRIMARY } from "."
 import { extractShortcuts, StyleShortcut } from "./styleShortcut"
 
