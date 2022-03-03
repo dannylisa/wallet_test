@@ -7,7 +7,7 @@ import DropDownPicker, { ValueType } from "react-native-dropdown-picker";
 import { useRecoilValue } from "recoil";
 import { getKeychainItem } from "@/utils/secure-key-store";
 import { BottomSheetModal, BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { MyWalletsBottomSheet } from "./mywallet-bottom-sheet";
+import { ERCTokensBottomSheet } from "./erc-tokens-bottom-sheet";
 import { fAddress } from "@/utils/format-address";
 import Web3 from "web3";
 import { ropsten } from "@/web3-config";
@@ -17,7 +17,9 @@ import { useNavigation } from "@react-navigation/native";
 import { useCurrentTransaction } from "@/modules/current-transaction";
 import { ITransaction } from "@/interface/transaction.interface";
 import Toast, { ErrorToast } from "react-native-toast-message";
-
+import { MyWalletsBottomSheet } from "./mywallet-bottom-sheet copy";
+import { minAbi } from "@/utils/erc20-abi";
+import { TransactionReceipt } from 'web3-core'
 
 
 const {toBN, toWei, fromWei, isAddress} = Web3.utils
@@ -25,6 +27,10 @@ const GweiToEther = (gwei: string | number) => fromWei(toWei(gwei+"", 'Gwei'), '
 
 type WithdrawScreenProp = StackNavigationProp<WithdrawParamList, "withdraw/main">
 
+interface Token {
+    symbol: string
+    address: string | null
+}
 
 export function Withdraw(){
     const nav = useNavigation<WithdrawScreenProp>()
@@ -44,31 +50,52 @@ export function Withdraw(){
     const onChangeFromAddress = () => {
         setFromBalance("-")
     }
+
+    // 토큰 사용여부, null -> 이더리움
+    const [token, setToken] = useState<Token>({symbol: "ETH", address: null})
+    const ercTokenBottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const openErcTokenModal = useCallback(() => {
+        ercTokenBottomSheetModalRef.current?.present();
+        Keyboard.dismiss()
+    }, []);
+
     useEffect(() => {
         if(!fromAddress)
             return;
-        ropsten.eth
-            .getBalance(""+fromAddress)
-            .then(res => {
-                const eth = fromWei(res, 'ether')
-                setFromBalance(eth)
-            })
-    },[fromAddress])
+
+        if(token.address){
+
+            const contract = new ropsten.eth.Contract(minAbi, token.address);
+            contract.methods
+                .balanceOf(fromAddress+"")
+                .call()
+                .then((bal: string) => setFromBalance(Web3.utils.fromWei(bal)))
+
+        } else {
+            ropsten.eth
+                .getBalance(""+fromAddress)
+                .then(res => {
+                    const eth = fromWei(res, 'ether')
+                    setFromBalance(eth)
+                })
+        }
+    },[fromAddress, token.address])
 
 
     // 받는 지갑
     const [toAddress, setToAddress] = useState<string>("")
-    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const toAddressBottomSheetModalRef = useRef<BottomSheetModal>(null);
     const openToAddressModal = useCallback(() => {
-        bottomSheetModalRef.current?.present();
+        toAddressBottomSheetModalRef.current?.present();
         Keyboard.dismiss()
     }, []);
+
 
     // 금액
     const [valueETH, setValueETH] = useState<string>("")
     const [gasPrice, setGasPrice] = useState<number>(0)
     const [gasLimit, setGasLimit] = useState<number>(0)
-    const gasFee = useMemo(() => gasLimit*gasPrice, [gasLimit, gasPrice])
+    const gasFee = useMemo(() => !token.address ? gasLimit*gasPrice : fromWei(toWei("100000", 'gwei')), [gasLimit, gasPrice, token.address])
     const isSendable = (value: string) => {
         if(fromBalance==="-"){
             return false;
@@ -98,13 +125,14 @@ export function Withdraw(){
 
     // Estimate Gas Limit
     useEffect(() => {
-        if(fromAddress && toAddress && valueETH)
+        if(token.address)
+            setGasLimit(0)
+        else if(fromAddress && toAddress && valueETH)
             ropsten.eth.estimateGas({
                 from: fromAddress+"",
                 to: toAddress,
                 value: toWei(valueETH, 'ether')
             }, (err, gas) => {
-                console.log(gas)
                 setGasLimit(+GweiToEther(gas || 0))
             })
     },[fromAddress, toAddress, valueETH])
@@ -116,18 +144,14 @@ export function Withdraw(){
         const value = toWei(valueETH, 'ether')
 
         const gasPrice = await ropsten.eth.getGasPrice()
+
         const gasLimit = await ropsten.eth.estimateGas({
             from,
             to: toAddress,
-            value
+            value: token.address ? 0 : value
         })
         
         const nonce = await ropsten.eth.getTransactionCount(from);
-        const privateKey = await getKeychainItem(from)
-        if(!privateKey){
-            Alert.alert('로컬에 개인 키가 저장되어있지 않습니다.')
-            return;
-        }
 
         const tx:ITransaction ={
             from,
@@ -135,7 +159,54 @@ export function Withdraw(){
             nonce,
             value,
             gasPrice,
-            gasLimit
+            gasLimit,
+        }
+
+        const privateKey = await getKeychainItem(from)
+        if(!privateKey){
+            Alert.alert('로컬에 개인 키가 저장되어있지 않습니다.')
+            return;
+        }
+
+
+        // ERC token의 경우
+        if(token.address){
+            const txID = Math.floor(new Date().getTime()/1000)
+
+            ropsten.eth.accounts.wallet.add(privateKey)
+            const contract = new ropsten.eth.Contract(minAbi, token.address);
+
+            contract.methods
+                .transfer(toAddress, value)
+                .send({
+                    from,
+                    gasPrice,
+                    gas: 100000
+                })
+                .once('sending', () => addTransaction(txID, {...tx, symbol: token.symbol}))
+                .once('sent', () => changeTransactionStatus(txID, 'sent'))
+                .once('transactionHash', (hash: string) => setTransactionHash(txID, hash))
+                .once('confirmation', () => setTerminalTransaction(txID, 'confirmation'))
+                .once('error', () => {
+                    setTerminalTransaction(txID, 'error')
+                    ErrorToast({
+                        text1: '송금 요청에 실패하였습니다.'
+                    })
+                })
+                .once(
+                    'receipt', 
+                    (receipt:TransactionReceipt)=> {
+                        Toast.show({
+                            type: 'success',
+                            text1: `${fromWei(value)} ${token.symbol} 송금이 완료되었습니다.`,
+                            text2: `${fAddress(tx.from)} -> ${fAddress(tx.to)}`,
+                            onPress: () => nav.navigate('withdraw/receipt', {receipt}) 
+                        });
+                    }
+                )
+                nav.navigate('withdraw/requested') 
+
+            return;
         }
 
         await ropsten.eth.accounts.signTransaction(tx, privateKey,
@@ -155,7 +226,7 @@ export function Withdraw(){
                     .once('sending', () => addTransaction(txID, tx))
                     .once('sent', () => changeTransactionStatus(txID, 'sent'))
                     .once('transactionHash', (hash) => setTransactionHash(txID, hash))
-                    .once('confirmation', () => changeTransactionStatus(txID, 'confirmation'))
+                    .once('confirmation', () => setTerminalTransaction(txID, 'confirmation'))
                     .once('error', () => {
                         setTerminalTransaction(txID, 'error')
                         ErrorToast({
@@ -165,10 +236,9 @@ export function Withdraw(){
                     .once(
                         'receipt', 
                         (receipt)=> {
-                            setTerminalTransaction(txID, 'receipt');
                             Toast.show({
                                 type: 'success',
-                                text1: `${value} ETH 송금이 완료되었습니다.`,
+                                text1: `${fromWei(value)} ETH 송금이 완료되었습니다.`,
                                 text2: `${fAddress(tx.from)} -> ${fAddress(tx.to)}`,
                                 onPress: () => nav.navigate('withdraw/receipt', {receipt}) 
                             });
@@ -206,23 +276,6 @@ export function Withdraw(){
                         onChangeValue={onChangeFromAddress}
                         items={myWalletsItem}
                     />
-                    <Box 
-                        flexDirection="row"
-                        marginTop={12} 
-                        justifyContent="space-between"
-                    >
-                        <Typography 
-                            style={fontfaces.D1}
-                            children="잔고"
-                            marginBottom={12}
-                        />
-                        <Typography 
-                            bold
-                            style={fontfaces.D1}
-                            children={`${fromBalance} ETH`}
-                            marginBottom={6}
-                        />
-                    </Box>
 
 
                     {/* 받는 지갑 */}
@@ -252,13 +305,25 @@ export function Withdraw(){
                         message="올바른 지갑 주소가 아닙니다."
                     />
                 
-                    {/* 금액 */}
-                    <Typography 
-                        bold
-                        style={fontfaces.P1}
-                        children="보낼 금액"
+                    {/* 보낼 금액 */}
+                    <Box 
+                        flexDirection="row"
+                        justifyContent="space-between" 
+                        alignItems="center" 
                         marginVertical={12}
-                    />
+                    >
+                        <Typography 
+                            bold
+                            style={fontfaces.P1}
+                            children="보낼 금액"
+                        />
+                        <Typography 
+                            color="primary"
+                            style={fontfaces.D1}
+                            children="다른 토큰 전송하기"
+                            onPress={openErcTokenModal}
+                        />
+                    </Box>
                     <TextInput
                         keyboardType="numeric" 
                         value={valueETH}
@@ -271,28 +336,42 @@ export function Withdraw(){
                             <Typography 
                                 bold
                                 style={fontfaces.P1}
-                                children="ETH"
+                                children={token.symbol}
                                 marginLeft={12}
                                 marginTop={6}
                             />
                         }
                     />
 
+                    <Box 
+                        flexDirection="row"
+                        justifyContent="space-between"
+                        marginTop={6}
+                    >
+                        <Typography 
+                            style={fontfaces.P2}
+                            children="잔고"
+                        />
+                        <Typography 
+                            style={fontfaces.P2}
+                            children={`${fromBalance} ${token.symbol}`}
+                        />
+                    </Box>
+
 
                     <Box 
                         flexDirection="row"
                         justifyContent="space-between" 
                         alignItems="center" 
-                        marginVertical={12}
+                        marginTop={4}
+                        marginBottom={12}
                     >
                         <Typography 
-                            bold
-                            style={fontfaces.P1}
+                            style={fontfaces.P2}
                             children="가스 비용"
                         />
                         <Typography 
-                            bold
-                            style={fontfaces.P1}
+                            style={fontfaces.P2}
                             children={`${gasFee} ETH`}
                         />
                     </Box>
@@ -304,8 +383,13 @@ export function Withdraw(){
 
 
                 <MyWalletsBottomSheet 
-                    sheetRef={bottomSheetModalRef} 
+                    sheetRef={toAddressBottomSheetModalRef} 
                     onSelect={setToAddress}
+                />
+                <ERCTokensBottomSheet
+                    sheetRef={ercTokenBottomSheetModalRef} 
+                    onSelect={setToken}
+                    walletAddress={fromAddress ? fromAddress+"" : ""}
                 />
             </BottomSheetModalProvider>
         </SafeAreaView>

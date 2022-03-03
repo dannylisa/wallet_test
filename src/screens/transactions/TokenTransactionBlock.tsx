@@ -1,4 +1,4 @@
-import { ITransaction } from "@/interface/transaction.interface"
+import { ITokenTransaction } from "@/interface/transaction.interface"
 import { fontfaces, Typography } from "@/materials"
 import { fAddress } from "@/utils/format-address"
 import dayjs from "dayjs"
@@ -6,9 +6,9 @@ import React from "react"
 import { StyleSheet, View } from "react-native"
 import Web3 from "web3"
 
-interface TransactionBlockProps {
+interface TokenTransactionBlockProps {
     address: string
-    transaction: ITransaction
+    transaction: ITokenTransaction
 }
 
 const styles = StyleSheet.create({
@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
 })
 
 
-export const TransactionBlock = ({transaction:{from, to, value, timeStamp}, address}:TransactionBlockProps) => {
+export const TokenTransactionBlock = ({transaction, address}:TokenTransactionBlockProps) => {
+    const {from, to, value, timeStamp, tokenSymbol} = transaction
     const isWithdraw = from.toUpperCase() === address.toUpperCase()
     const color = isWithdraw ? "#FB334E" : "#2B88F7"
     const date = dayjs(+(timeStamp || 1)*1000).format('YYYY-MM-DD HH:mm:ss')
@@ -40,7 +41,7 @@ export const TransactionBlock = ({transaction:{from, to, value, timeStamp}, addr
                 align="right"
                 style={fontfaces.P1}
                 color={color}
-                children={`${isWithdraw ? "-" : "+"}${Web3.utils.fromWei(value, 'ether')} ETH`}
+                children={`${isWithdraw ? "-" : "+"}${Web3.utils.fromWei(value, 'ether')} ${tokenSymbol}`}
             />
         </View>
     )

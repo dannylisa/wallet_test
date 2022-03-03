@@ -37,20 +37,17 @@ const styles = StyleSheet.create({
 
 export const Button = ({style, children, type, disabled, ...props}:ButtonProps) => {
     const color = type === "primary" ? "#ffffff" : type === "secondary" ? BLACK : "primary";
+
     const content = typeof children === "string" ? (
             <Typography 
-            align="center"
-            style={fontfaces.P1}
-            children={children}
-            color={color}
+                align="center"
+                style={fontfaces.P1}
+                children={children}
+                color={color}
             />
-        ) : (
-            children
-        )
-    let theme = styles[type]
-    if(disabled)
-        theme.backgroundColor = theme.backgroundColor+"aa";
+        ) : children
 
+    let theme = styles[type]
 
     return (
         <TouchableOpacity

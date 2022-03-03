@@ -19,7 +19,6 @@ export async function getTransactionsByAccount (account:string, endBlockNumber:n
     const targetTransactions:Transaction[] = [];
     for(let i = endBlockNumber; i >= startBlockNumber; i--){
         const block = await ropsten.eth.getBlock(i)
-        console.log(block.timestamp)
         for (const transaction of block.transactions) {
             const tx = await ropsten.eth.getTransaction(transaction)
             if(tx.from === account || tx.to === account){

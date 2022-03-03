@@ -7,6 +7,7 @@ import { RecoilRoot } from 'recoil';
 
 
 const App = () => {
+  
   return (
     <RecoilRoot>
       <StatusBar barStyle='dark-content'/>

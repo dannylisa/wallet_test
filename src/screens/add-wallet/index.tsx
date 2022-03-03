@@ -60,7 +60,6 @@ export function AddWallet(){
                         {/* 개인 키 입력 */}
                         <Typography style={fontfaces.H2} children="개인 키 입력" marginTop={24} />
                         <TextInput
-                            secureTextEntry
                             placeholder="개인 키를 입력해 주세요."
                             value={pk}
                             onChangeText={setPk}

@@ -75,7 +75,7 @@ export const GenerateMnemonic = ({onNext, mnemonic}: GenerateMnemonicProps) => {
 
            <Button
                 type="primary"
-                children={mnemonics.length ? "다음" : "암호 생성하기"}
+                children="다음"
                 onPress={onNext}
            />
        </Box>

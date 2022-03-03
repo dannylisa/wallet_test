@@ -42,7 +42,7 @@ export const useCurrentTransaction = () => {
         })
     }
 
-    const setTerminalTransaction = (id: number, status: 'error' | 'receipt') => {
+    const setTerminalTransaction = (id: number, status: 'error' | 'confirmation') => {
         changeTransactionStatus(id, status)
     
         // 2분 후 거래 내역 삭제 (etherscan 거래 내역에서 확인 가능)

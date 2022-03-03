@@ -2,6 +2,7 @@ import { IStorageWallet } from "@/interface/storage-wallet.interface";
 import { Box, fontfaces, shadow, Tag, Typography } from "@/materials";
 import { ropsten } from "@/web3-config";
 import React, { useEffect, useState } from "react";
+import QRCode from "react-native-qrcode-svg";
 import Web3 from "web3";
 
 interface WalletViewProps {
@@ -30,24 +31,19 @@ export const WalletView = ({wallet:{address, }}:WalletViewProps) => {
 
     return (
         <Box style={[shadow, {borderRadius: 4}]} padding={16}>
-            <Box alignItems="flex-start" marginBottom={4}>
-                <Tag color="blue" children="테스트넷"/>
+            <Box alignItems="flex-start" marginBottom={8}>
+                <Typography style={fontfaces.D1} color="blue" children="테스트넷"/>
             </Box>
-            <Typography 
-                align="center"
-                style={fontfaces.H1}
-                children="이더리움 지갑"
-            />
-            <Typography 
-                align="center"
-                style={fontfaces.D1}
+            <Tag 
+                color="green"
                 children={address}
             />
-            <Typography 
-                align="center"
-                style={fontfaces.H2}
-                children={`${balance} eth`}
-            />
+            <Box alignItems="center" marginTop={10}  >
+                <QRCode 
+                    value={address}
+                    size={100}
+                />
+            </Box>
         </Box>
     )
 }
