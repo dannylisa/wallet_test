@@ -8,9 +8,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { SafeAreaView, ScrollView, StyleSheet } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { getGenericPassword, ACCESS_CONTROL, ACCESSIBLE, AUTHENTICATION_TYPE, } from "react-native-keychain";
 import { useRecoilState, useSetRecoilState } from "recoil";
 
 import { NoWallet } from "./NoWallet";
@@ -63,7 +64,21 @@ export function SelectWallet(){
 
 
                 {wallets.map((wallet, i) => {
-                    const onPress = () => setCurrentWallet(wallet)
+                    const onPress = () => {
+                        // const options = {
+                        //     authenticationPrompt: {
+                        //       title: 'Authentication needed',
+                        //       subtitle: 'Subtitle',
+                        //       description: 'Some descriptive text',
+                        //       cancel: 'Cancel',
+                        //     },
+                        //     accessControl: ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE, 
+                        //     accessible: ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY, 
+                        //     authenticationType: AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS,
+                        //   };
+                        // const cred = getGenericPassword(options)
+                        setCurrentWallet(wallet)
+                    }
                     const {address, createdAt} = wallet
                     return (
                         <TouchableOpacity 

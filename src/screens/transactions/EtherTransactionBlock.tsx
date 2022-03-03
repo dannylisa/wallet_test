@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 
 
 export const EtherTransactionBlock = ({transaction, address}:EtherTransactionBlockProps) => {
-    const {from, to, value, timeStamp, input, gas, isError} = transaction
+    const {from, to, value, timeStamp, input, gas, isError, hash} = transaction
     const isWithdraw = from.toUpperCase() === address.toUpperCase()
     const color = isWithdraw ? "#FB334E" : "#2B88F7"
     const date = dayjs(+(timeStamp || 1)*1000).format('YYYY-MM-DD HH:mm:ss')
@@ -38,6 +38,10 @@ export const EtherTransactionBlock = ({transaction, address}:EtherTransactionBlo
             <Typography 
                 style={fontfaces.D1}
                 children={date}
+            />
+            <Typography 
+                style={fontfaces.D2}
+                children={hash}
             />
             <Typography 
                 align="right"

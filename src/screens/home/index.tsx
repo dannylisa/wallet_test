@@ -43,9 +43,8 @@ export function Home(){
 
     
     if(!currentWallet)
-        return null;
+        return <></>;
     
-
     return (
         <SafeAreaView style={screenStyles.safeAreaView}>
             <View style={screenStyles.defaultScreen} >

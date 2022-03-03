@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 
 
 export const TokenTransactionBlock = ({transaction, address}:TokenTransactionBlockProps) => {
-    const {from, to, value, timeStamp, tokenSymbol} = transaction
+    const {from, to, value, timeStamp, tokenSymbol, hash} = transaction
     const isWithdraw = from.toUpperCase() === address.toUpperCase()
     const color = isWithdraw ? "#FB334E" : "#2B88F7"
     const date = dayjs(+(timeStamp || 1)*1000).format('YYYY-MM-DD HH:mm:ss')
@@ -36,6 +36,10 @@ export const TokenTransactionBlock = ({transaction, address}:TokenTransactionBlo
             <Typography 
                 style={fontfaces.D1}
                 children={date}
+            />
+            <Typography 
+                style={fontfaces.D2}
+                children={hash}
             />
             <Typography 
                 align="right"
